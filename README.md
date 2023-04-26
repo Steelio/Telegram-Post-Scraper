@@ -41,7 +41,3 @@ To use Telegram-Post-Scraper, you just provide it with a URL of a Telegram post.
 ## Contributing
 
 If you find any bugs or have suggestions for improvements, feel free to create an issue or submit a pull request.
-
-## License
-
-Telegram-Post-Scraper is released under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) license. This means that you are free to use the program, but you may not use it for commercial purposes.
