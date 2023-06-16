@@ -18,8 +18,8 @@ Much love, enjoy y'all ♥
 ## Features
 
 - Scrapes posts from Telegram channels using HTTP requests and HTML parsing.
-- Can copy the content of the post, including text and images. (#TODO: Video download support)
-- Downloads images and other media attached to the post.
+- Can copy the content of the posts, and download media such as images and videos.
+- Supports scraping multiple links in one session. Seperate links at the beginning of the program with commas. (t.me/groupID/333,t.me/someotherID/444,t.me/anotherOne/555)
 - Does not require a bot or an API key.
 - Useful for situations where using Telegram's API or creating a bot is not feasible or against Telegram's terms of service.
 
