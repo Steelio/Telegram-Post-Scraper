@@ -1,6 +1,7 @@
 # Telegram Post Scraper via Python
 
 Telegram-Post-Scraper is a Python program designed to scrape posts from Telegram channels using HTTP requests and HTML parsing, rather than Telegram's API. This program is useful when creating bots or using Telegram's API is not feasible or against Telegram's terms of service.
+TG-Post-Scraper also has the capabilities to download multimedia, videos and images from a Telegram post. Atop of this, it offers the ability to save posts and the bulk data to text files for ease of access.
 
 ## Changelog
 ```
