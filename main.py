@@ -1,29 +1,33 @@
+import asyncio
 import os
-import requests
-from bs4 import BeautifulSoup
-import pyperclip
-import html2text
 import re
-import textwrap
-class TelegramScraper:
+import time
+from bs4 import BeautifulSoup
+import html2text
+import requests
+import pyperclip
+class TeleScraper:
+    def __init__(self):        
+        self.postURL = input('Please enter the Telegram post URL:\n > ')
+        self.urlSplit = self.postURL.split(',')
+        self.urlList = [entry + '?embed=1&mode=tme' for entry in self.urlSplit]
+        self.imageUrls = []
+        self.videoUrls = []
+        self.imageFound = None
+        self.author = ""
+        self.content = ""
+        self.dateTime = ""
+        self.bulkContent = ""
+        self.headers = {
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36 TelegramBot (like TwitterBot)'
+        }
+    def clClr(self):
+        match(os.name):
+            case 'nt':
+                os.system('cls')
+            case _:
+                os.system('clear')
     
-    def __init__(self, post_links, author = "", content = "", postDate = "", bulkData = ""):
-        self.post_links = post_links
-        self.author = author
-        self.content = content
-        self.postDate = postDate
-        self.bulkData = bulkData
-        self.imgUrls = []
-        self.hasImg = None
-
-    def clear_console(self):
-        # Windows
-        if os.name == 'nt':
-            os.system('cls')
-        # Unix/Linux/MacOS
-        else:
-            os.system('clear')
-
     def html_to_text(self, html):
         h = html2text.HTML2Text()
         h.body_width = 0  # Disable line wrapping
@@ -39,89 +43,149 @@ class TelegramScraper:
         text = h.handle(html)
         text = re.sub(r'\*+', '', text)  # Remove asterisks
         text = re.sub(r'^[ \t]*[\\`]', '', text, flags=re.MULTILINE)  # Remove leading \ or `
-        return text
-
-    def downloadImages(self):
-        self.clear_console()
-        dlImg = input(f"Would you like to download [{len(self.imgUrls)}] images from the post?\n[Y] - Download {len(self.imgUrls)} images from {self.author}\n[Enter] - Skip Downloads")
-        if dlImg:
-            urlData = post_link.split('/')
-            mainFolder = urlData[-2]
-            postID = urlData[-1]
-            if not os.path.exists(f"{mainFolder}"):
-                os.makedirs(f"{mainFolder}")
-            for img_num, url in enumerate(self.imgUrls, start=1):
-                fp = f"{mainFolder}-{urlData[-1]}"
-                fn = f"{mainFolder}-{img_num}.jpg"
-                if not os.path.exists(f"{mainFolder}\{fp}"):
-                    os.makedirs(f"{mainFolder}\{fp}")
-                if os.path.exists(os.path.join(f"{mainFolder}\{fp}", fn)):
-                    print(f"Image {img_num} already exists at {os.path.dirname(os.path.abspath(__file__))}\{mainFolder}")
-                else:
-                    response = requests.get(url)
-                    with open(os.path.join(f"{mainFolder}\{fp}", fn), 'wb') as f:
-                        f.write(response.content)
-                    print(f"Image {img_num} downloaded to {os.path.dirname(os.path.abspath(__file__))}\{mainFolder}")
-
-        
-    def copyData(self):
-        self.clear_console()
-        copyData = input("Would you like to copy the content to your clipboard?\n[Y - Copy Content | A - Copy All Data]\n('Enter' to skip) Selection: ").lower()
-        match(copyData):
-            case 'y':
-                pyperclip.copy(self.content)
-            case 'a':
-                pyperclip.copy(self.bulkData)
-            case _:
-                print("Skipping!")
-        if(self.hasImg):
-            self.downloadImages()
-    def doit(self):
-        try:
-            for link in self.post_links:
-                response = requests.get(link)
-                soup = BeautifulSoup(response.text, 'html.parser')
-                requiresApp = soup.find('div', {'class': 'message_media_not_supported_label'})
-                if requiresApp:
-                    input("This Telegram post is unavailable through GET requests.\nIt must be viewed in the Telegram app.\nSorry! ♥\n\nPress 'Enter' to exit")
-                    exit()
-
-                htmlBody = soup.find('div', {'class': 'tgme_widget_message_text js-message_text', 'dir': 'auto'})
-                author = soup.find('div', {'class': 'tgme_widget_message_author accent_color'}).find('a', {'class': 'tgme_widget_message_owner_name'}).find('span', {'dir': 'auto'})
-                datetime = soup.find('span', {'class': 'tgme_widget_message_meta'}).find('time', {'class': 'datetime'})
-                # Find all the a elements with the specified class
-                imgUrls = soup.findAll('a', {'class': 'tgme_widget_message_photo_wrap'})
-                if imgUrls:
-                    for div in imgUrls:
+        return text    
+    async def run(self):
+        def appendImageUrls(urlList):
+            for div in urlList:
                         style = div['style']
                         match = re.search(r"background-image:url\('(.*)'\)", style)
                         if match:
                             bg_image_url = match.group(1)
-                            self.hasImg = True
-                            self.imgUrls.append(bg_image_url)
-                if htmlBody:
-                    self.content = self.html_to_text(str(htmlBody))
-                if author:
-                    self.author = self.html_to_text(str(author))
-                if datetime:
-                    self.postDate = self.html_to_text(str(datetime))
-                match(self.hasImg):
-                    case True:
-                        info = f"URL: {link}\nImages: [{len(self.imgUrls)}]\n\nAuthor: {self.author}Date: {self.postDate}\nTelegram Content:\n\n{self.content.strip()}\n"
-                    case None:
-                        info = f"URL: {link}\nAuthor: {self.author}\nDate: {self.postDate}\nTelegram Content:\n\n{self.content.strip()}\n"
-                self.bulkData = info
-                wrapped_info = textwrap.indent(info, ' ' * 12)
-                print(wrapped_info)
-        except AttributeError as e: 
-            print(e)
+                            self.imageUrls.append(bg_image_url)
+            
+        def appendVideoUrls(linkHTML):
+            video_tags = linkHTML.find_all('video')
+            for video in video_tags:
+                src = video.get('src')
+                if src:
+                    self.videoUrls.append(src)
+        
+        def postTextHandler():
+            time.sleep(1)
+            self.clClr()
+            print(f'Text Contents Of Post'.center(80))
+            print(f'{self.content}'.center(80))
+            #print()
+            url_data = self.postURL.split('/')
+            main_folder = url_data[-2]
+            post_id = url_data[-1]
+            bulkData = f'Author: {self.author}\nDate / Time: {self.dateTime}\nContent: \n{self.content}'
+            match(input('[TG Scraper] Would you like to:\n1. Copy Post Contents\n2. Save Post Contents\n3. Copy Bulk Data\n4. Save Bulk Content\nSelection: ')):
+                case '1':
+                    pyperclip.copy(str(self.content))
+                case '2':
+                    pyperclip.copy(bulkData)
+                case '3':
+                    if not os.path.exists(main_folder):
+                        os.makedirs(main_folder)
+                    file_path = os.path.join(main_folder, f"{main_folder}-{post_id}", f"{main_folder}-Post-Content.txt")
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                    with open(file_path, "w", encoding="utf-8") as file:
+                        file.writelines(self.content)
+                case '4':
+                    if not os.path.exists(main_folder):
+                        os.makedirs(main_folder)
+                    file_path = os.path.join(main_folder, f"{main_folder}-{post_id}", f"{main_folder}-Bulk-Content.txt")
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                    with open(file_path, "w", encoding="utf-8") as file:
+                        file.writelines(bulkData)
+                case _:
+                    print('[TG Scraper] Invalid Selection!');time.sleep(0.5);self.clClr();postTextHandler()
+        def downloadMedia(img, vid, mediaType):
+            def download(file_type):
+                url_data = self.postURL.split('/')
+                main_folder = url_data[-2]
+                post_id = url_data[-1]
+
+                if not os.path.exists(main_folder):
+                    os.makedirs(main_folder)
+
+                if file_type == 'img':
+                    array_to_watch = self.imageUrls
+                    file_extension = '.jpg'
+                elif file_type == 'vid':
+                    array_to_watch = self.videoUrls
+                    file_extension = '.mp4'
+                else:
+                    print('Invalid file type')
+                    return
+
+                for file_num, url in enumerate(array_to_watch, start=1):
+                    file_path = os.path.join(main_folder, f"{main_folder}-{post_id}", f"{file_type}-{self.dateTime}-{file_num}{file_extension}")
+
+                    #if os.path.exists(file_path):
+                    #    print(f"File {file_num} already exists at {os.path.abspath(file_path)}")
+                    #else:
+                    response = requests.get(url)
+                    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                    with open(file_path, 'wb') as f:
+                        f.write(response.content)
+
+                    print(f"File {file_num} downloaded to {os.path.abspath(file_path)}")
+            if not any([img, vid]):
+                print("[TG Scraper] Why are you trying to download media from a post with no media? Skill issue, imo.")
+                return
+            if len(img) <= 0:
+                print('[TG Scraper] No images found! Skipping...')
+            if len(vid) <= 0:
+                print('[TG Scraper] No videos found! Skipping...')
+            match(mediaType):
+                case 'img':
+                    for link in img:
+                        print(f'[TG Scraper] Downloading {len(self.imageUrls)} image(s).')
+                        download('img')
+                case 'vid':
+                    for link in vid:
+                        print(f'[TG Scraper] Downloading {len(self.imageUrls)} video(s).')
+                        download('vid')
+                case _:
+                    for link in vid:
+                        print(f'[TG Scraper] Downloading {len(self.imageUrls)} video(s).')
+                        download('vid')
+                    for link in img:
+                        print(f'[TG Scraper] Downloading {len(self.imageUrls)} image(s).')
+                        download('img')
+            postTextHandler()
+            
+        def mediaDLPrompt():
+            match(input('[TG Scraper] Would you like to download the media?\nYou can select images or videos.\n[Y] - Download Media | [N] - Proceed To PostHandler\nSelection: ').upper()):
+                case 'Y':
+                    match(input('[TG Scraper] 1. Download Videos Exclusively\n2. Download Images Exclusively\n3. Download Images & Videos\nSelection: ')):
+                        case '1':    
+                            downloadMedia(img=self.imageUrls,vid=self.videoUrls,mediaType='vid')
+                        case '2':
+                            downloadMedia(img=self.imageUrls,vid=self.videoUrls,mediaType='img')
+                        case _:
+                            downloadMedia(img=self.imageUrls,vid=self.videoUrls,mediaType='both')
+                case 'N':
+                    postTextHandler()
+                case _:
+                    self.clClr()
+                    print('Invalid selection!')
+                    time.sleep(0.5);self.clClr()
+                    mediaDLPrompt()
+        try:
+            for link in self.urlList:
+                print(link)
+                linkReq = requests.get(url=link,headers=self.headers); linkReq.raise_for_status()
+                linkHTML = BeautifulSoup(linkReq.text, 'html.parser')
+                self.content = self.html_to_text(str(linkHTML.find('div', {'class': 'tgme_widget_message_text js-message_text', 'dir': 'auto'})))
+                self.author = self.html_to_text(str(linkHTML.find('div', {'class': 'tgme_widget_message_author accent_color'}).find('a', {'class': 'tgme_widget_message_owner_name'}).find('span', {'dir': 'auto'})))
+                self.dateTime = self.html_to_text(str(linkHTML.find('span', {'class': 'tgme_widget_message_meta'}).find('time', {'class': 'datetime'})))
+                imgCt = linkHTML.findAll('a', {'class': 'tgme_widget_message_photo_wrap'})
+                vidUrls = linkHTML.findAll('div', {'class': 'tgme_widget_message_video_wrap'}) 
+                if len(imgCt) > 0 or len(vidUrls) > 0:
+                    print(f'[TG Scraper] Found {len(imgCt)} image(s) and {len(vidUrls)} video(s).')
+                    appendImageUrls(imgCt)
+                    appendVideoUrls(linkHTML)
+                    mediaDLPrompt()
+                else:
+                    print('No Media Found. Continuing to PostHandler.')
+                    time.sleep(0.25)
+                    postTextHandler()
+                    
+        except requests.exceptions.RequestException as err:
+            print(err)
 if __name__ == '__main__':
-    post_link = input("Enter your post URL: ")
-    post_links = post_link + "?embed=1&mode=tme"
-    scraper = TelegramScraper(post_links.split('|'))
-    scraper.doit()
-    input("Press Enter to continue")
-    scraper.copyData()
-    
-    
-    
+    _scraper = TeleScraper()
+    asyncio.run(_scraper.run())
