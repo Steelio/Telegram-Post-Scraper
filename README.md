@@ -55,3 +55,10 @@ To use Telegram-Post-Scraper, you just provide it with a URL of a Telegram post.
 ## Contributing
 
 If you find any bugs or have suggestions for improvements, feel free to create an issue or submit a pull request.
+
+
+## Donations
+Was this program useful to you? 
+If you want to donate ♥:
+ > BTC: bc1qvrm0tepx6jdxcsr99z5xqmswcl9ad333nenkeg
+ > LTC: LSuSA99uMbC1BtQ4eJxpczAsv3W7KbtahF
