@@ -49,6 +49,7 @@ To use Telegram-Post-Scraper, you just provide it with a URL of a Telegram post.
 ```
 1. Open Command Prompt, Powershell, or Terminal.
 2. Run "py(thon3) main.py"
+2a. (For CLI usage) py(thon3) main.py -l OR --link http://t.me/somegroup/ID
 3. Enter your Telegram post URL. (Format: https://t.me/SOMEGROUP/NUMERICID)
 3a. You can find the link of a Telegram post by right clicking it and pressing "Copy Link".
 4. Follow through the prompts in the console window.
