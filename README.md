@@ -64,5 +64,4 @@ If you find any bugs or have suggestions for improvements, feel free to create a
 ## Donations
 Was this program useful to you? 
 If you want to donate ♥:
- > BTC: bc1qvrm0tepx6jdxcsr99z5xqmswcl9ad333nenkeg
- > LTC: LSuSA99uMbC1BtQ4eJxpczAsv3W7KbtahF
+ > BTC: bc1q0rp3740t3hjrpuc3dzhme30rupwcffet7jndux
