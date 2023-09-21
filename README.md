@@ -5,13 +5,16 @@ TG-Post-Scraper also has the capabilities to download multimedia, videos and ima
 
 ## Changelog
 ```
-• Version 2.0 released. Code was rewritten.
-Should be more efficient.
-• Added support for multiple links. Separate with a comma.
-Link Ex: (t.me/somegroup/540,t.me/someothergroup/250)
-• Added video downloading support.
-•• If you find any bugs please submit an issue ticket. Whipped this up semi-buzzed. So I may have overlooked something.
+Version 3:
+Release Date: Sept 21, 2023
 
+Rewrote the base. Again.
+Added better error handling.
+Converted from async back to sync.
+Added CLI support.
+py(thon)(3) main.py --link / -l https://t.me/somegroup/420
+
+Version 4 will include a graphical user interface as well as a settings handler.
 Much love, enjoy y'all ♥
 ```
 
